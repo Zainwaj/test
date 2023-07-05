@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - dev
+      - production
+
+jobs: 
+  deploy: 
+    runs-on: ubuntu-latest
+    steps:
+      - if: github.ref == 'refs/heads/dev'
+        name: Push to dev
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_PRIVATE_SECRET }}
+          script: cd ${{ secrets.UAT_FOLDER_PATH }} && git pull origin dev && yarn install && yarn upgrade hrcms-dist && cd client/admin && yarn && yarn build && cd ../employer && yarn && yarn build && cd ../exchangeHouse && yarn && yarn build && /usr/local/bin/pm2 restart employer.kamelpay
+          command_timeout: 200m
+          timeout: 200m
